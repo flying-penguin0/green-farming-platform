@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.farmer.mapper.PortalMapper">
+
+    <resultMap id="BannerResultMap" type="com.farmer.entity.Banner">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="link_url" property="linkUrl"/>
+        <result column="sort_no" property="sortNo"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <resultMap id="NoticeResultMap" type="com.farmer.entity.Notice">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="publish_status" property="publishStatus"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.farmer.entity.Product">
+        <id column="id" property="id"/>
+        <result column="product_name" property="productName"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="seller_type" property="sellerType"/>
+        <result column="source_cycle_id" property="sourceCycleId"/>
+        <result column="price" property="price"/>
+        <result column="stock" property="stock"/>
+        <result column="unit" property="unit"/>
+        <result column="main_image" property="mainImage"/>
+        <result column="description" property="description"/>
+        <result column="sales_count" property="salesCount"/>
+        <result column="status" property="status"/>
+        <result column="seller_name" property="sellerName"/>
+        <result column="seller_avatar" property="sellerAvatar"/>
+        <result column="category_name" property="categoryName"/>
+    </resultMap>
+
+    <resultMap id="CycleResultMap" type="com.farmer.entity.FarmingCycle">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="business_type" property="businessType"/>
+        <result column="item_id" property="itemId"/>
+        <result column="item_name" property="itemName"/>
+        <result column="cycle_name" property="cycleName"/>
+        <result column="scale_value" property="scaleValue"/>
+        <result column="scale_unit" property="scaleUnit"/>
+        <result column="start_date" property="startDate"/>
+        <result column="expected_end_date" property="expectedEndDate"/>
+        <result column="actual_end_date" property="actualEndDate"/>
+        <result column="status" property="status"/>
+        <result column="is_public" property="isPublic"/>
+        <result column="description" property="description"/>
+        <result column="owner_name" property="ownerName"/>
+    </resultMap>
+
+    <resultMap id="RecordResultMap" type="com.farmer.entity.FarmingRecord">
+        <id column="id" property="id"/>
+        <result column="cycle_id" property="cycleId"/>
+        <result column="template_id" property="templateId"/>
+        <result column="record_title" property="recordTitle"/>
+        <result column="record_content" property="recordContent"/>
+        <result column="record_time" property="recordTime"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="template_name" property="templateName"/>
+    </resultMap>
+
+    <resultMap id="CommentResultMap" type="com.farmer.entity.ProductComment">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_item_id" property="orderItemId"/>
+        <result column="product_id" property="productId"/>
+        <result column="user_id" property="userId"/>
+        <result column="score" property="score"/>
+        <result column="content" property="content"/>
+        <result column="reply_content" property="replyContent"/>
+        <result column="comment_time" property="commentTime"/>
+        <result column="status" property="status"/>
+        <result column="product_name" property="productName"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_avatar" property="userAvatar"/>
+    </resultMap>
+
+    <select id="selectPortalStats" resultType="com.farmer.dto.PortalStatsDTO">
+        select
+        (select count(*) from farming_cycle where is_public = 1) as publicCycleCount,
+        (select count(*) from product_info where status = 'ON_SALE') as productCount,
+        (select count(*) from sys_user where role_type in ('PLANTER','BREEDER') and status = 'ENABLED') as farmerCount,
+        (select count(*) from order_info) as orderCount
+    </select>
+
+    <select id="selectActiveBanners" resultMap="BannerResultMap">
+        select * from banner_info
+        where status = 'ENABLED'
+        order by sort_no asc, id desc
+    </select>
+
+    <select id="selectPublishedNotices" resultMap="NoticeResultMap">
+        select * from notice_info
+        where publish_status = 'PUBLISHED'
+        order by create_time desc
+        limit 5
+    </select>
+
+    <select id="selectHotProducts" resultMap="ProductResultMap">
+        select p.*, u.real_name as seller_name, u.avatar as seller_avatar, c.category_name
+        from product_info p
+        left join sys_user u on p.seller_id = u.id
+        left join product_category c on p.category_id = c.id
+        where p.status = 'ON_SALE'
+        order by p.sales_count desc, p.id desc
+        limit 8
+    </select>
+
+    <select id="selectPortalProducts" resultMap="ProductResultMap">
+        select p.*, u.real_name as seller_name, u.avatar as seller_avatar, c.category_name
+        from product_info p
+        left join sys_user u on p.seller_id = u.id
+        left join product_category c on p.category_id = c.id
+        where p.status = 'ON_SALE'
+        <if test="keyword != null and keyword != ''">
+            and (
+                p.product_name like concat('%', #{keyword}, '%')
+                or u.real_name like concat('%', #{keyword}, '%')
+                or c.category_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+        order by
+            case when p.seller_type in ('PLANT', 'PLANTER') then 1 else 2 end asc,
+            p.seller_id asc,
+            p.sales_count desc,
+            p.id desc
+    </select>
+
+    <select id="selectSellerProducts" resultMap="ProductResultMap">
+        select p.*, u.real_name as seller_name, u.avatar as seller_avatar, c.category_name
+        from product_info p
+        left join sys_user u on p.seller_id = u.id
+        left join product_category c on p.category_id = c.id
+        where p.status = 'ON_SALE'
+        and p.seller_id = #{sellerId}
+        <if test="sellerType != null and sellerType != ''">
+            and (
+                (#{sellerType} = 'PLANT' and p.seller_type in ('PLANT', 'PLANTER'))
+                or (#{sellerType} = 'BREED' and p.seller_type in ('BREED', 'BREEDER'))
+                or (#{sellerType} not in ('PLANT', 'BREED') and p.seller_type = #{sellerType})
+            )
+        </if>
+        order by p.sales_count desc, p.id desc
+    </select>
+
+    <select id="selectPublicCycles" resultMap="CycleResultMap">
+        select fc.*, u.real_name as owner_name
+        from farming_cycle fc
+        left join sys_user u on fc.user_id = u.id
+        where fc.is_public = 1 and fc.business_type = #{businessType}
+        order by fc.start_date desc
+        limit 6
+    </select>
+
+    <select id="selectProductById" resultMap="ProductResultMap">
+        select p.*, u.real_name as seller_name, u.avatar as seller_avatar, c.category_name
+        from product_info p
+        left join sys_user u on p.seller_id = u.id
+        left join product_category c on p.category_id = c.id
+        where p.id = #{id}
+    </select>
+
+    <select id="selectCycleById" resultMap="CycleResultMap">
+        select fc.*, u.real_name as owner_name
+        from farming_cycle fc
+        left join sys_user u on fc.user_id = u.id
+        where fc.id = #{id}
+    </select>
+
+    <select id="selectProductComments" resultMap="CommentResultMap">
+        select pc.*, oi.product_name, su.real_name as user_name, su.avatar as user_avatar
+        from product_comment pc
+        left join order_item oi on pc.order_item_id = oi.id
+        left join sys_user su on pc.user_id = su.id
+        where pc.product_id = #{productId}
+        and pc.status = 'VISIBLE'
+        order by pc.comment_time desc, pc.id desc
+    </select>
+
+    <select id="selectRecordsByCycleId" resultMap="RecordResultMap">
+        select fr.*, st.template_name
+        from farming_record fr
+        left join stage_template st on fr.template_id = st.id
+        where fr.cycle_id = #{cycleId}
+        order by fr.record_time desc, fr.id desc
+    </select>
+</mapper>

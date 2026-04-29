@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.farmer.mapper.DashboardMapper">
+
+    <select id="selectAdminStats" resultType="com.farmer.dto.DashboardStatsDTO">
+        select
+        (select count(*) from farming_cycle) as cycleCount,
+        (select count(*) from product_info) as productCount,
+        (select count(*) from order_info) as orderCount,
+        (select ifnull(sum(total_amount), 0) from order_info where order_status in ('PENDING_RECEIVE','FINISHED')) as totalAmount
+    </select>
+
+    <select id="selectSellerStats" resultType="com.farmer.dto.DashboardStatsDTO">
+        select
+        (select count(*) from farming_cycle where user_id = #{sellerId} and business_type = #{businessType}) as cycleCount,
+        (select count(*) from product_info where seller_id = #{sellerId} and seller_type = #{businessType}) as productCount,
+        (select count(*) from order_info where seller_id = #{sellerId}) as orderCount,
+        (select ifnull(sum(total_amount), 0) from order_info where seller_id = #{sellerId} and order_status in ('PENDING_RECEIVE','FINISHED')) as totalAmount
+    </select>
+</mapper>

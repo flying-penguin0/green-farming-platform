@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.farmer.mapper.FarmerMapper">
+
+    <resultMap id="CycleResultMap" type="com.farmer.entity.FarmingCycle">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="business_type" property="businessType"/>
+        <result column="item_id" property="itemId"/>
+        <result column="item_name" property="itemName"/>
+        <result column="cycle_name" property="cycleName"/>
+        <result column="scale_value" property="scaleValue"/>
+        <result column="scale_unit" property="scaleUnit"/>
+        <result column="start_date" property="startDate"/>
+        <result column="expected_end_date" property="expectedEndDate"/>
+        <result column="actual_end_date" property="actualEndDate"/>
+        <result column="status" property="status"/>
+        <result column="is_public" property="isPublic"/>
+        <result column="description" property="description"/>
+    </resultMap>
+
+    <resultMap id="RecordResultMap" type="com.farmer.entity.FarmingRecord">
+        <id column="id" property="id"/>
+        <result column="cycle_id" property="cycleId"/>
+        <result column="template_id" property="templateId"/>
+        <result column="record_title" property="recordTitle"/>
+        <result column="record_content" property="recordContent"/>
+        <result column="record_time" property="recordTime"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="template_name" property="templateName"/>
+        <result column="cycle_name" property="cycleName"/>
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.farmer.entity.Product">
+        <id column="id" property="id"/>
+        <result column="product_name" property="productName"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="seller_type" property="sellerType"/>
+        <result column="source_cycle_id" property="sourceCycleId"/>
+        <result column="price" property="price"/>
+        <result column="stock" property="stock"/>
+        <result column="unit" property="unit"/>
+        <result column="main_image" property="mainImage"/>
+        <result column="description" property="description"/>
+        <result column="sales_count" property="salesCount"/>
+        <result column="status" property="status"/>
+        <result column="category_name" property="categoryName"/>
+    </resultMap>
+
+    <resultMap id="OrderInfoResultMap" type="com.farmer.entity.OrderInfo">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="receiver_name" property="receiverName"/>
+        <result column="receiver_phone" property="receiverPhone"/>
+        <result column="receiver_address" property="receiverAddress"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="pay_time" property="payTime"/>
+        <result column="delivery_time" property="deliveryTime"/>
+        <result column="finish_time" property="finishTime"/>
+        <result column="user_name" property="userName"/>
+    </resultMap>
+
+    <resultMap id="TemplateResultMap" type="com.farmer.entity.StageTemplate">
+        <id column="id" property="id"/>
+        <result column="template_name" property="templateName"/>
+        <result column="business_type" property="businessType"/>
+        <result column="remark" property="remark"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectCyclesByUser" resultMap="CycleResultMap">
+        select * from farming_cycle
+        where user_id = #{userId} and business_type = #{businessType}
+        order by id desc
+    </select>
+
+    <select id="selectCycleByIdAndUser" resultMap="CycleResultMap">
+        select * from farming_cycle where id = #{id} and user_id = #{userId}
+    </select>
+
+    <insert id="insertCycle" parameterType="com.farmer.entity.FarmingCycle" useGeneratedKeys="true" keyProperty="id">
+        insert into farming_cycle
+        (user_id, business_type, item_id, item_name, cycle_name, scale_value, scale_unit, start_date, expected_end_date, actual_end_date, status, is_public, description)
+        values
+        (#{userId}, #{businessType}, #{itemId}, #{itemName}, #{cycleName}, #{scaleValue}, #{scaleUnit}, #{startDate}, #{expectedEndDate}, #{actualEndDate}, #{status}, #{isPublic}, #{description})
+    </insert>
+
+    <update id="updateCycle" parameterType="com.farmer.entity.FarmingCycle">
+        update farming_cycle
+        set item_id = #{itemId},
+            item_name = #{itemName},
+            cycle_name = #{cycleName},
+            scale_value = #{scaleValue},
+            scale_unit = #{scaleUnit},
+            start_date = #{startDate},
+            expected_end_date = #{expectedEndDate},
+            actual_end_date = #{actualEndDate},
+            status = #{status},
+            is_public = #{isPublic},
+            description = #{description}
+        where id = #{id} and user_id = #{userId}
+    </update>
+
+    <delete id="deleteCycle">
+        delete from farming_cycle where id = #{id} and user_id = #{userId}
+    </delete>
+
+    <select id="selectRecordsByUser" resultMap="RecordResultMap">
+        select fr.*, st.template_name, fc.cycle_name
+        from farming_record fr
+        left join farming_cycle fc on fr.cycle_id = fc.id
+        left join stage_template st on fr.template_id = st.id
+        where fc.user_id = #{userId} and fc.business_type = #{businessType}
+        order by fr.id desc
+    </select>
+
+    <select id="selectRecordById" resultMap="RecordResultMap">
+        select fr.*, st.template_name, fc.cycle_name
+        from farming_record fr
+        left join farming_cycle fc on fr.cycle_id = fc.id
+        left join stage_template st on fr.template_id = st.id
+        where fr.id = #{id} and fc.user_id = #{userId}
+    </select>
+
+    <insert id="insertRecord" parameterType="com.farmer.entity.FarmingRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into farming_record (cycle_id, template_id, record_title, record_content, record_time, image_url)
+        values (#{cycleId}, #{templateId}, #{recordTitle}, #{recordContent}, #{recordTime}, #{imageUrl})
+    </insert>
+
+    <update id="updateRecord" parameterType="com.farmer.entity.FarmingRecord">
+        update farming_record
+        set cycle_id = #{cycleId},
+            template_id = #{templateId},
+            record_title = #{recordTitle},
+            record_content = #{recordContent},
+            record_time = #{recordTime},
+            image_url = #{imageUrl}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRecord">
+        delete fr from farming_record fr
+        left join farming_cycle fc on fr.cycle_id = fc.id
+        where fr.id = #{id} and fc.user_id = #{userId}
+    </delete>
+
+    <select id="selectProductsBySeller" resultMap="ProductResultMap">
+        select p.*, c.category_name
+        from product_info p
+        left join product_category c on p.category_id = c.id
+        where p.seller_id = #{sellerId} and p.seller_type = #{sellerType}
+        order by p.id desc
+    </select>
+
+    <select id="selectProductByIdAndSeller" resultMap="ProductResultMap">
+        select p.*, c.category_name
+        from product_info p
+        left join product_category c on p.category_id = c.id
+        where p.id = #{id} and p.seller_id = #{sellerId}
+    </select>
+
+    <insert id="insertProduct" parameterType="com.farmer.entity.Product" useGeneratedKeys="true" keyProperty="id">
+        insert into product_info
+        (product_name, category_id, seller_id, seller_type, source_cycle_id, price, stock, unit, main_image, description, sales_count, status)
+        values
+        (#{productName}, #{categoryId}, #{sellerId}, #{sellerType}, #{sourceCycleId}, #{price}, #{stock}, #{unit}, #{mainImage}, #{description}, #{salesCount}, #{status})
+    </insert>
+
+    <update id="updateProduct" parameterType="com.farmer.entity.Product">
+        update product_info
+        set product_name = #{productName},
+            category_id = #{categoryId},
+            source_cycle_id = #{sourceCycleId},
+            price = #{price},
+            stock = #{stock},
+            unit = #{unit},
+            main_image = #{mainImage},
+            description = #{description},
+            sales_count = #{salesCount},
+            status = #{status}
+        where id = #{id} and seller_id = #{sellerId}
+    </update>
+
+    <delete id="deleteProduct">
+        delete from product_info where id = #{id} and seller_id = #{sellerId}
+    </delete>
+
+    <select id="selectOrdersBySeller" resultMap="OrderInfoResultMap">
+        select oi.*, buyer.real_name as user_name
+        from order_info oi
+        left join sys_user buyer on oi.user_id = buyer.id
+        where oi.seller_id = #{sellerId}
+        order by oi.id desc
+    </select>
+
+    <select id="selectTemplatesByBusinessType" resultMap="TemplateResultMap">
+        select * from stage_template
+        where business_type = #{businessType} and status = 'ENABLED'
+        order by id asc
+    </select>
+</mapper>

@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.farmer.mapper.TradeMapper">
+
+    <resultMap id="CartItemResultMap" type="com.farmer.entity.CartItem">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="quantity" property="quantity"/>
+        <result column="create_time" property="createTime"/>
+        <result column="product_name" property="productName"/>
+        <result column="main_image" property="mainImage"/>
+        <result column="price" property="price"/>
+        <result column="unit" property="unit"/>
+        <result column="stock" property="stock"/>
+        <result column="seller_id" property="sellerId"/>
+    </resultMap>
+
+    <resultMap id="OrderInfoResultMap" type="com.farmer.entity.OrderInfo">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="receiver_name" property="receiverName"/>
+        <result column="receiver_phone" property="receiverPhone"/>
+        <result column="receiver_address" property="receiverAddress"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="pay_time" property="payTime"/>
+        <result column="delivery_time" property="deliveryTime"/>
+        <result column="finish_time" property="finishTime"/>
+        <result column="user_name" property="userName"/>
+        <result column="seller_name" property="sellerName"/>
+    </resultMap>
+
+    <resultMap id="OrderItemResultMap" type="com.farmer.entity.OrderItem">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="product_image" property="productImage"/>
+        <result column="price" property="price"/>
+        <result column="quantity" property="quantity"/>
+        <result column="amount" property="amount"/>
+    </resultMap>
+
+    <resultMap id="CommentResultMap" type="com.farmer.entity.ProductComment">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_item_id" property="orderItemId"/>
+        <result column="product_id" property="productId"/>
+        <result column="user_id" property="userId"/>
+        <result column="score" property="score"/>
+        <result column="content" property="content"/>
+        <result column="reply_content" property="replyContent"/>
+        <result column="comment_time" property="commentTime"/>
+        <result column="status" property="status"/>
+        <result column="product_name" property="productName"/>
+        <result column="product_image" property="productImage"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_avatar" property="userAvatar"/>
+        <result column="seller_name" property="sellerName"/>
+        <result column="seller_avatar" property="sellerAvatar"/>
+        <result column="quantity" property="quantity"/>
+    </resultMap>
+
+    <resultMap id="AddressResultMap" type="com.farmer.entity.UserAddress">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="receiver_name" property="receiverName"/>
+        <result column="receiver_phone" property="receiverPhone"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="area" property="area"/>
+        <result column="detail_address" property="detailAddress"/>
+        <result column="is_default" property="isDefault"/>
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.farmer.entity.Product">
+        <id column="id" property="id"/>
+        <result column="product_name" property="productName"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="seller_type" property="sellerType"/>
+        <result column="source_cycle_id" property="sourceCycleId"/>
+        <result column="price" property="price"/>
+        <result column="stock" property="stock"/>
+        <result column="unit" property="unit"/>
+        <result column="main_image" property="mainImage"/>
+        <result column="description" property="description"/>
+        <result column="sales_count" property="salesCount"/>
+        <result column="status" property="status"/>
+        <result column="seller_name" property="sellerName"/>
+        <result column="category_name" property="categoryName"/>
+    </resultMap>
+
+    <select id="selectCartItemsByUserId" resultMap="CartItemResultMap">
+        select c.*, p.product_name, p.main_image, p.price, p.unit, p.stock, p.seller_id
+        from cart_item c
+        left join product_info p on c.product_id = p.id
+        where c.user_id = #{userId}
+        order by c.id desc
+    </select>
+
+    <select id="selectCartItemByUserAndProduct" resultMap="CartItemResultMap">
+        select * from cart_item where user_id = #{userId} and product_id = #{productId} limit 1
+    </select>
+
+    <select id="selectCartItemById" resultMap="CartItemResultMap">
+        select c.*, p.product_name, p.main_image, p.price, p.unit, p.stock, p.seller_id
+        from cart_item c
+        left join product_info p on c.product_id = p.id
+        where c.id = #{id}
+        limit 1
+    </select>
+
+    <insert id="insertCartItem" parameterType="com.farmer.entity.CartItem" useGeneratedKeys="true" keyProperty="id">
+        insert into cart_item (user_id, product_id, quantity) values (#{userId}, #{productId}, #{quantity})
+    </insert>
+
+    <update id="updateCartItemQuantity">
+        update cart_item set quantity = #{quantity} where id = #{id}
+    </update>
+
+    <delete id="deleteCartItem">
+        delete from cart_item where id = #{id}
+    </delete>
+
+    <delete id="deleteCartItemsByUserId">
+        delete from cart_item where user_id = #{userId}
+    </delete>
+
+    <select id="selectDefaultAddressByUserId" resultMap="AddressResultMap">
+        select * from user_address where user_id = #{userId} order by is_default desc, id asc limit 1
+    </select>
+
+    <select id="selectAddressesByUserId" resultMap="AddressResultMap">
+        select * from user_address
+        where user_id = #{userId}
+        order by is_default desc, id asc
+    </select>
+
+    <select id="selectAddressById" resultMap="AddressResultMap">
+        select * from user_address
+        where id = #{id} and user_id = #{userId}
+        limit 1
+    </select>
+
+    <update id="clearDefaultAddressByUserId">
+        update user_address
+        set is_default = 0
+        where user_id = #{userId}
+    </update>
+
+    <insert id="insertUserAddress" parameterType="com.farmer.entity.UserAddress" useGeneratedKeys="true" keyProperty="id">
+        insert into user_address
+        (user_id, receiver_name, receiver_phone, province, city, area, detail_address, is_default)
+        values
+        (#{userId}, #{receiverName}, #{receiverPhone}, #{province}, #{city}, #{area}, #{detailAddress}, #{isDefault})
+    </insert>
+
+    <update id="updateUserAddress" parameterType="com.farmer.entity.UserAddress">
+        update user_address
+        set receiver_name = #{receiverName},
+            receiver_phone = #{receiverPhone},
+            province = #{province},
+            city = #{city},
+            area = #{area},
+            detail_address = #{detailAddress},
+            is_default = #{isDefault}
+        where id = #{id} and user_id = #{userId}
+    </update>
+
+    <delete id="deleteUserAddress">
+        delete from user_address where id = #{id} and user_id = #{userId}
+    </delete>
+
+    <select id="selectProductForOrder" resultMap="ProductResultMap">
+        select p.*, su.real_name as seller_name, pc.category_name
+        from product_info p
+        left join sys_user su on p.seller_id = su.id
+        left join product_category pc on p.category_id = pc.id
+        where p.id = #{productId}
+        limit 1
+    </select>
+
+    <insert id="insertOrderInfo" parameterType="com.farmer.entity.OrderInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into order_info
+        (order_no, user_id, seller_id, total_amount, order_status, receiver_name, receiver_phone, receiver_address, remark, pay_time)
+        values
+        (#{orderNo}, #{userId}, #{sellerId}, #{totalAmount}, #{orderStatus}, #{receiverName}, #{receiverPhone}, #{receiverAddress}, #{remark}, #{payTime})
+    </insert>
+
+    <insert id="insertOrderItem" parameterType="com.farmer.entity.OrderItem" useGeneratedKeys="true" keyProperty="id">
+        insert into order_item (order_id, product_id, product_name, product_image, price, quantity, amount)
+        values (#{orderId}, #{productId}, #{productName}, #{productImage}, #{price}, #{quantity}, #{amount})
+    </insert>
+
+    <select id="selectOrdersByUserId" resultMap="OrderInfoResultMap">
+        select oi.*, buyer.real_name as user_name, seller.real_name as seller_name
+        from order_info oi
+        left join sys_user buyer on oi.user_id = buyer.id
+        left join sys_user seller on oi.seller_id = seller.id
+        <where>
+            oi.user_id = #{userId}
+            <if test="status != null and status != ''">
+                and oi.order_status = #{status}
+            </if>
+        </where>
+        order by oi.id desc
+    </select>
+
+    <select id="selectAllOrders" resultMap="OrderInfoResultMap">
+        select oi.*, buyer.real_name as user_name, seller.real_name as seller_name
+        from order_info oi
+        left join sys_user buyer on oi.user_id = buyer.id
+        left join sys_user seller on oi.seller_id = seller.id
+        <where>
+            <if test="status != null and status != ''">
+                and oi.order_status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (oi.order_no like concat('%', #{keyword}, '%')
+                or buyer.real_name like concat('%', #{keyword}, '%')
+                or seller.real_name like concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by oi.id desc
+    </select>
+
+    <select id="selectOrderById" resultMap="OrderInfoResultMap">
+        select oi.*, buyer.real_name as user_name, seller.real_name as seller_name
+        from order_info oi
+        left join sys_user buyer on oi.user_id = buyer.id
+        left join sys_user seller on oi.seller_id = seller.id
+        where oi.id = #{id}
+    </select>
+
+    <select id="selectOrderItemsByOrderId" resultMap="OrderItemResultMap">
+        select oi.id,
+               oi.order_id,
+               oi.product_id,
+               oi.product_name,
+               ifnull(nullif(p.main_image, ''), oi.product_image) as product_image,
+               oi.price,
+               oi.quantity,
+               oi.amount
+        from order_item oi
+        left join product_info p on oi.product_id = p.id
+        where oi.order_id = #{orderId}
+        order by oi.id asc
+    </select>
+
+    <update id="updateOrderStatus">
+        update order_info
+        set order_status = #{status},
+            delivery_time = case when #{status} = 'PENDING_RECEIVE' then now() else delivery_time end,
+            finish_time = case when #{status} = 'FINISHED' then now() else finish_time end
+        where id = #{id}
+    </update>
+
+    <update id="updateProductStockAndSales">
+        update product_info
+        set stock = stock - #{quantity},
+            sales_count = sales_count + #{quantity}
+        where id = #{productId}
+    </update>
+
+    <select id="selectPendingCommentsByUserId" resultMap="CommentResultMap">
+        select oi.id,
+               oi.order_id,
+               oi.id as order_item_id,
+               oi.product_id,
+               oi.product_name,
+               ifnull(nullif(p.main_image, ''), oi.product_image) as product_image,
+               ofi.order_no,
+               oi.quantity,
+               null as score,
+               null as content,
+               null as reply_content,
+               null as comment_time,
+               null as status,
+               null as user_name
+        from order_item oi
+        left join order_info ofi on oi.order_id = ofi.id
+        left join product_info p on oi.product_id = p.id
+        left join product_comment pc on pc.order_item_id = oi.id
+        where ofi.user_id = #{userId}
+          and ofi.order_status = 'FINISHED'
+          and pc.id is null
+        order by ofi.finish_time desc, oi.id desc
+    </select>
+
+    <select id="selectCommentsByUserId" resultMap="CommentResultMap">
+        select pc.*,
+               oi.product_name,
+               ifnull(nullif(p.main_image, ''), oi.product_image) as product_image,
+               ofi.order_no,
+               oi.quantity
+        from product_comment pc
+        left join order_item oi on pc.order_item_id = oi.id
+        left join order_info ofi on pc.order_id = ofi.id
+        left join product_info p on oi.product_id = p.id
+        where pc.user_id = #{userId}
+        order by pc.id desc
+    </select>
+
+    <select id="selectAllComments" resultMap="CommentResultMap">
+        select pc.*,
+               oi.product_name,
+               ifnull(nullif(p.main_image, ''), oi.product_image) as product_image,
+               ofi.order_no,
+               ifnull(nullif(buyer.real_name, ''), buyer.username) as user_name,
+               buyer.avatar as user_avatar,
+               ifnull(nullif(seller.real_name, ''), seller.username) as seller_name,
+               seller.avatar as seller_avatar
+        from product_comment pc
+        left join order_item oi on pc.order_item_id = oi.id
+        left join order_info ofi on pc.order_id = ofi.id
+        left join product_info p on oi.product_id = p.id
+        left join sys_user buyer on pc.user_id = buyer.id
+        left join sys_user seller on ofi.seller_id = seller.id
+        <where>
+            <if test="status != null and status != ''">
+                and pc.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (oi.product_name like concat('%', #{keyword}, '%')
+                or pc.content like concat('%', #{keyword}, '%')
+                or buyer.real_name like concat('%', #{keyword}, '%')
+                or buyer.username like concat('%', #{keyword}, '%')
+                or seller.real_name like concat('%', #{keyword}, '%')
+                or seller.username like concat('%', #{keyword}, '%')
+                or ofi.order_no like concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by pc.id desc
+    </select>
+
+    <select id="selectCommentsBySellerId" resultMap="CommentResultMap">
+        select pc.*,
+               oi.product_name,
+               ifnull(nullif(p.main_image, ''), oi.product_image) as product_image,
+               ofi.order_no,
+               ifnull(nullif(buyer.real_name, ''), buyer.username) as user_name,
+               buyer.avatar as user_avatar
+        from product_comment pc
+        left join order_item oi on pc.order_item_id = oi.id
+        left join order_info ofi on pc.order_id = ofi.id
+        left join product_info p on oi.product_id = p.id
+        left join sys_user buyer on pc.user_id = buyer.id
+        where ofi.seller_id = #{sellerId}
+        order by pc.id desc
+    </select>
+
+    <select id="selectCommentByOrderItemId" resultMap="CommentResultMap">
+        select * from product_comment where order_item_id = #{orderItemId} limit 1
+    </select>
+
+    <insert id="insertComment" parameterType="com.farmer.entity.ProductComment" useGeneratedKeys="true" keyProperty="id">
+        insert into product_comment (order_id, order_item_id, product_id, user_id, score, content, status)
+        values (#{orderId}, #{orderItemId}, #{productId}, #{userId}, #{score}, #{content}, 'VISIBLE')
+    </insert>
+
+    <update id="updateCommentStatus">
+        update product_comment set status = #{status} where id = #{id}
+    </update>
+
+    <update id="updateCommentReply">
+        update product_comment set reply_content = #{replyContent} where id = #{id}
+    </update>
+
+    <select id="selectFavoriteProductsByUserId" resultMap="ProductResultMap">
+        select p.*, su.real_name as seller_name, pc.category_name
+        from product_favorite pf
+        left join product_info p on pf.product_id = p.id
+        left join sys_user su on p.seller_id = su.id
+        left join product_category pc on p.category_id = pc.id
+        where pf.user_id = #{userId}
+        order by pf.id desc
+    </select>
+
+    <select id="selectFavoriteIdByUserAndProduct" resultType="java.lang.Long">
+        select id from product_favorite where user_id = #{userId} and product_id = #{productId} limit 1
+    </select>
+
+    <insert id="insertFavorite">
+        insert into product_favorite (user_id, product_id) values (#{userId}, #{productId})
+    </insert>
+
+    <delete id="deleteFavorite">
+        delete from product_favorite where user_id = #{userId} and product_id = #{productId}
+    </delete>
+</mapper>

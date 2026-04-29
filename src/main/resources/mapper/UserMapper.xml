@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.farmer.mapper.UserMapper">
+    <resultMap id="UserResultMap" type="com.farmer.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="real_name" property="realName"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="avatar" property="avatar"/>
+        <result column="gender" property="gender"/>
+        <result column="role_type" property="roleType"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByUsername" resultMap="UserResultMap">
+        select * from sys_user where username = #{username} limit 1
+    </select>
+
+    <select id="selectById" resultMap="UserResultMap">
+        select * from sys_user where id = #{id} limit 1
+    </select>
+
+    <insert id="insertUser" parameterType="com.farmer.entity.User" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_user (username, password, real_name, phone, email, avatar, gender, role_type, status)
+        values (#{username}, #{password}, #{realName}, #{phone}, #{email}, #{avatar}, #{gender}, #{roleType}, #{status})
+    </insert>
+
+    <update id="updateProfile" parameterType="com.farmer.entity.User">
+        update sys_user
+        set real_name = #{realName},
+            phone = #{phone},
+            email = #{email},
+            avatar = #{avatar},
+            gender = #{gender},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        update sys_user
+        set password = #{password},
+            update_time = now()
+        where id = #{id}
+    </update>
+</mapper>
